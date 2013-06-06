@@ -199,7 +199,7 @@ static NSString *currentFileName = nil;
         static NSString *CellIdentifier = @"DropboxBrowserCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
 		if (cell == nil) {
-			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
 										  reuseIdentifier:CellIdentifier];
 		}
 
@@ -346,8 +346,8 @@ static NSString *currentFileName = nil;
     [self.downloadProgressView setProgress:0.0];
     self.navigationItem.title = @"Dropbox";
     [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"File Downloaded"
-                                                        message:[NSString stringWithFormat:@"%@ was downloaded to the documents folder.", currentFileName]
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Download Successfully"
+                                                        message:[NSString stringWithFormat:@"\"%@\" was downloaded to the documents folder.", currentFileName]
                                                        delegate:nil
                                               cancelButtonTitle:@"Okay"
                                               otherButtonTitles:nil];
@@ -366,6 +366,12 @@ static NSString *currentFileName = nil;
     [self.downloadProgressView setHidden:YES];
     self.navigationItem.title = [currentPath lastPathComponent];
     [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Download Failed"
+                                                        message:[NSString stringWithFormat:@"Failed to download \"%@\"!", currentFileName]
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Okay"
+                                              otherButtonTitles:nil];
+    [alertView show];
     if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:failedToDownloadFile:)])
         [[self rootViewDelegate] dropboxBrowser:self failedToDownloadFile:currentFileName];
 }
