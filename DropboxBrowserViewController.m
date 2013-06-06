@@ -121,12 +121,14 @@ static NSString *currentFileName = nil;
         [self setDownloadProgressView:newProgressView];
     }
 
+	/*
     if ([UIRefreshControl class]) {
         UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
         refreshControl.tintColor = [UIColor colorWithRed:0.0/255.0f green:122.0/255.0f blue:223.0/255.0f alpha:1.0f];
         [refreshControl addTarget:self action:@selector(updateContent) forControlEvents:UIControlEventValueChanged];
         self.refreshControl = refreshControl;
     }
+	 */
 
     self.clearsSelectionOnViewWillAppear = NO;
 }
@@ -140,10 +142,11 @@ static NSString *currentFileName = nil;
                                                   otherButtonTitles:@"Sign In to Dropbox", nil];
         [alertView show];
     } else {
+		/*
         if ([UIRefreshControl class]) {
             [self.refreshControl beginRefreshing];
             [self.tableView setContentOffset:CGPointMake(0, -self.refreshControl.frame.size.height) animated:YES];
-        } else {
+        } else */ {
             [NSObject cancelPreviousPerformRequestsWithTarget:self];
             [MBProgressHUD hideHUDForView:self.view animated:YES];
             self.hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
@@ -162,11 +165,12 @@ static NSString *currentFileName = nil;
     self.hud.customView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"37x-Checkmark.png"]];
 	self.hud.mode = MBProgressHUDModeCustomView;
     [self performSelector:@selector(dismissHUD:) withObject:nil afterDelay:3.0];
-    if ([UIRefreshControl class]) {
+	/*
+    if (![UIRefreshControl class]) {
         [self.refreshControl endRefreshing];
         [self.tableView setContentOffset:CGPointMake(0, 0) animated:YES];
     }
-
+	 */
 }
 
 
@@ -191,7 +195,6 @@ static NSString *currentFileName = nil;
         cell.textLabel.textColor = [UIColor darkGrayColor];
         return cell;
     } else {
-        #warning Use the correct UITableViewCell ID in your Storyboard: DropboxBrowserCell
         static NSString *CellIdentifier = @"DropboxBrowserCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
 		if (cell == nil) {
@@ -239,10 +242,11 @@ static NSString *currentFileName = nil;
         self.currentPath = subpath;
         self.title = [currentPath lastPathComponent];
 
-        if ([UIRefreshControl class]) {
+		/*
+        if (![UIRefreshControl class]) {
             [self.refreshControl beginRefreshing];
             [self.tableView setContentOffset:CGPointMake(0, -self.refreshControl.frame.size.height) animated:YES];
-        } else {
+        } else */ {
             [NSObject cancelPreviousPerformRequestsWithTarget:self];
             [MBProgressHUD hideHUDForView:self.view animated:YES];
             self.hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
@@ -266,8 +270,10 @@ static NSString *currentFileName = nil;
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
     [self.tableView reloadData];
 
-    if ([UIRefreshControl class])
+	/*
+    if (![UIRefreshControl class])
         [self.refreshControl endRefreshing];
+	 */
 }
 
 - (void)updateContent {
@@ -316,10 +322,11 @@ static NSString *currentFileName = nil;
 }
 
 - (void)dismissHUD {
-    if ([UIRefreshControl class]) {
+	/*
+    if (![UIRefreshControl class]) {
         [self.refreshControl endRefreshing];
         [self.tableView setContentOffset:CGPointMake(0, 0) animated:YES];
-    } else {
+    } else */ {
         [MBProgressHUD hideHUDForView:self.view animated:YES];
     }
 }
