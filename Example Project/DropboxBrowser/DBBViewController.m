@@ -37,9 +37,6 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:YES];
 
-    if (![[DBSession sharedSession] isLinked]) {
-		[[DBSession sharedSession] linkFromController:self];
-	}
     clearDocsBtn.hidden = NO;
 }
 
@@ -61,15 +58,20 @@
 
 - (IBAction)browseDropbox:(id)sender {
     DropboxBrowserViewController *db = [[DropboxBrowserViewController alloc] init];
+	db.rootViewDelegate = self;
     [db setupAllowedFileTypes:[NSMutableArray arrayWithObjects:@"pdf", nil]];
-    [self performSegueWithIdentifier:@"showDropboxBrowser" sender:self];
+
+	UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:db];
+	[self presentModalViewController:nav animated:YES];
+
+//    [self performSegueWithIdentifier:@"showDropboxBrowser" sender:self];
 }
 
 
 #pragma mark - DropboxBrowserDelegate
 
 - (void)dropboxBrowser:(DropboxBrowserViewController *)browser downloadedFile:(NSString *)fileName {
-    NSLog(@"Downloaded %@", fileName);
+    NSLog(@"NAL 1XFE &&& Downloaded %@", fileName);
 }
 
 - (void)dropboxBrowser:(DropboxBrowserViewController *)browser failedToDownloadFile:(NSString *)fileName {
@@ -82,7 +84,7 @@
     NSLog(@"Conflict error with %@\n%@ last modified on %@\nError: %@", file.filename, file.filename, file.lastModifiedDate, errorMessage);
 }
 
-- (void)dropboxBrowserDismissed:(DropboxBrowserViewController *)browser {
+- (void)dropboxBrowserWillDismissed:(DropboxBrowserViewController *)browser {
 }
 
 

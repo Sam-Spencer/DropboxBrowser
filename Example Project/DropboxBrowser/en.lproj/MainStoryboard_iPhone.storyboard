@@ -74,7 +74,7 @@
                     <connections>
                         <outlet property="clearDocsBtn" destination="sKI-3M-i8b" id="a6N-GE-lxF"/>
                         <outlet property="imgView" destination="yTi-dd-0qy" id="5XB-cn-mL1"/>
-                        <segue destination="tQm-tb-dkt" kind="modal" identifier="showDropboxBrowser" modalTransitionStyle="flipHorizontal" id="5XH-8V-bg4"/>
+                        <segue destination="tQm-tb-dkt" kind="modal" identifier="showDropboxBrowser" modalTransitionStyle="coverVertical" id="5XH-8V-bg4"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4" sceneMemberID="firstResponder"/>

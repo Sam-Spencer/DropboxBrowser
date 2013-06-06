@@ -28,13 +28,16 @@
 //
 //
 
+
 #import <UIKit/UIKit.h>
 #import <DropboxSDK/DropboxSDK.h>
 #import "MBProgressHUD.h"
 
+
 @class DBRestClient;
 @class DBMetadata;
 @protocol DropboxBrowserDelegate;
+
 @interface DropboxBrowserViewController : UITableViewController <UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate> {
     DBRestClient *restClient;
     NSMutableArray *allowedFileTypes;
@@ -46,6 +49,7 @@
 @property (nonatomic, strong) NSString *currentPath;
 @property (nonatomic, copy, readwrite) NSMutableArray *list;
 @property (readwrite, strong, nonatomic, setter = setAllowedFileTypes:) NSMutableArray *allowedFileTypes;
+
 - (void)setList:(NSMutableArray *)newList;
 - (void)setAllowedFileTypes:(NSMutableArray *)allowedFiles;
 - (void)setupAllowedFileTypes:(NSMutableArray *)allowedFiles;
@@ -89,6 +93,9 @@
 
 @end
 
+
+
+
 //DropboxBrowser Delegate
 
 @protocol DropboxBrowserDelegate <NSObject>
@@ -114,12 +121,12 @@
 - (void)dropboxBrowser:(DropboxBrowserViewController *)browser fileConflictError:(NSDictionary *)conflict;
 
 //Dropbox Browser was dismissed by the user - Do NOT use this method to dismiss the DropboxBrowser
-- (void)dropboxBrowserDismissed:(DropboxBrowserViewController *)browser;
+- (void)dropboxBrowserWillDismissed:(DropboxBrowserViewController *)browser;
 
 //Dereciated Methods - No longer called. Do not use.
 - (void)removeDropboxBrowser __deprecated;
 - (void)refreshLibrarySection __deprecated;
-- (void)dropboxBrowserDismissed __deprecated;
+- (void)dropboxBrowserWillDismissed __deprecated;
 - (void)dropboxBrowserDownloadedFile:(NSString *)fileName __deprecated;
 - (void)dropboxBrowserFailedToDownloadFile:(NSString *)fileName __deprecated;
 - (void)dropboxBrowserFileConflictError:(NSDictionary *)conflict __deprecated;
