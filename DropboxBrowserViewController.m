@@ -32,8 +32,8 @@
 #import "DropboxBrowserViewController.h"
 
 
-@interface DropboxBrowserViewController () <DBRestClientDelegate>
-{
+@interface DropboxBrowserViewController () <DBRestClientDelegate> {
+	UITableViewRowAnimation rowAnimation;
     UIBarButtonItem *leftButton;
 }
 
@@ -71,6 +71,7 @@ static NSString *currentFileName = nil;
 - (void)moveToParentDirectory {
     NSString *filePath = [self.currentPath stringByDeletingLastPathComponent];
     self.currentPath = filePath;
+	rowAnimation = UITableViewRowAnimationBottom;
 
     if ([self.currentPath isEqualToString:@"/"]) {
         leftButton = nil;
@@ -254,6 +255,7 @@ static NSString *currentFileName = nil;
             [self performSelector:@selector(timeout:) withObject:nil afterDelay:30.0];
         }
 
+		rowAnimation = UITableViewRowAnimationTop;
         [self listDirectoryAtPath:subpath];
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
     } else {
@@ -267,7 +269,7 @@ static NSString *currentFileName = nil;
 }
 
 - (void)refreshTableView {
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:rowAnimation];
     [self.tableView reloadData];
 
 	/*
