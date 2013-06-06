@@ -40,6 +40,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<!-- app key -->
 				<string>db-k78utucwe5gn4qa</string>
 			</array>
 		</dict>

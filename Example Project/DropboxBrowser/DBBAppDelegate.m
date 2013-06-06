@@ -11,7 +11,6 @@
 @implementation DBBAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-//    DBSession* dbSession = [[DBSession alloc] initWithAppKey:@"k78utucwe5gn4qa" appSecret:@"uryb33eg7a21s1q" root:kDBRootDropbox];
     DBSession* dbSession = [[DBSession alloc] initWithAppKey:@"k78utucwe5gn4qa" appSecret:@"uryb33eg7a21s1q" root:kDBRootDropbox];
     [DBSession setSharedSession:dbSession];
     return YES;
