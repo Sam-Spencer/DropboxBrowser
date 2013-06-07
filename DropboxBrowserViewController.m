@@ -37,6 +37,10 @@
     UIBarButtonItem *leftButton;
 }
 
+@property (nonatomic, strong) NSString *curDirPath;
+@property (nonatomic, strong) NSString *uploadSrcFilePath;
+@property (nonatomic, assign) int       reqType;
+
 - (DBRestClient *)restClient;
 
 @end
@@ -47,6 +51,7 @@
 @implementation DropboxBrowserViewController
 
 #define kSignDropboxTitle		@"Sign In to Dropbox"
+#define kYesUploadIt			@"Yes, Upload it!"
 
 @synthesize downloadProgressView;
 @synthesize hud, currentPath;
@@ -57,6 +62,18 @@ static NSString *currentFileName = nil;
 
 
 #pragma mark - Files and Directories
+
++ (id)DBBViewCtrlWithType:(int)type uploadFile:(NSString *)filepath
+{
+	DropboxBrowserViewController *db = [[DropboxBrowserViewController alloc] init];
+	UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:db];
+
+	db.reqType = type;
+	db.uploadSrcFilePath = filepath;
+	// sDefaultCtrl.rootViewDelegate = ...; // TODO
+
+	return nav;
+}
 
 + (NSString *)fileName {
     return currentFileName;
@@ -103,12 +120,19 @@ static NSString *currentFileName = nil;
 
     self.title = @"Dropbox";
     self.currentPath = @"/";
+	self.curDirPath = @"/";
 
     self.navigationController.navigationBar.tintColor = [UIColor colorWithRed:0.0/255.0f green:122.0/255.0f blue:223.0/255.0f alpha:1.0f];
     [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"navBar"] forBarMetrics:UIBarMetricsDefault];
 
-    UIBarButtonItem *rightButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonSystemItemDone target:self action:@selector(removeDropboxBrowser)];
-    self.navigationItem.rightBarButtonItem = rightButton;
+	if  (self.reqType == kDBBForDownload) {
+		UIBarButtonItem *done = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonSystemItemDone target:self action:@selector(removeDropboxBrowser)];
+		self.navigationItem.rightBarButtonItem = done;
+	} else if (self.reqType == kDBBForUpload) {
+		UIBarButtonItem *done = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonSystemItemDone target:self action:@selector(removeDropboxBrowser)];
+		UIBarButtonItem *add =  [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonSystemItemAdd target:self action:@selector(uploadToDropbox)];
+		self.navigationItem.rightBarButtonItems = [NSArray arrayWithObjects:done, add, nil];
+	}
 
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         UIProgressView *newProgressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
@@ -118,7 +142,7 @@ static NSString *currentFileName = nil;
         [self setDownloadProgressView:newProgressView];
     } else {
         UIProgressView *newProgressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
-        newProgressView.frame = CGRectMake(80, 37, 150, 30);
+        newProgressView.frame = CGRectMake(80, 37, 110, 30);
         newProgressView.hidden = YES;
         [self.parentViewController.view addSubview:newProgressView];
         [self setDownloadProgressView:newProgressView];
@@ -235,6 +259,7 @@ static NSString *currentFileName = nil;
     DBMetadata *file = (DBMetadata*)[self.list objectAtIndex:indexPath.row];
 
     if ([file isDirectory]) {
+		self.curDirPath = file.path;
         leftButton = [[UIBarButtonItem alloc] initWithTitle:@"Back"
                                                       style:UIBarButtonItemStyleDone
                                                      target:self
@@ -317,6 +342,19 @@ static NSString *currentFileName = nil;
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
     if ([buttonTitle isEqualToString:kSignDropboxTitle]) {
         [[DBSession sharedSession] linkFromController:self];
+    } else if ([buttonTitle isEqualToString:kYesUploadIt]) {
+
+		if (self.uploadSrcFilePath == nil) self.uploadSrcFilePath = @"";
+
+		NSString *filename = [self.uploadSrcFilePath lastPathComponent];
+		NSString *srcpath = self.uploadSrcFilePath;
+		NSString *dstpath = self.curDirPath;
+
+		[self.downloadProgressView setHidden:NO];
+		[self.downloadProgressView setProgress:0.0];
+
+		[[self restClient] uploadFile:filename toPath:dstpath withParentRev:nil fromPath:srcpath];
+
     } else if ([buttonTitle isEqualToString:@"Cancel"]) {
         if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowserWillDismissed:)])
             [[self rootViewDelegate] dropboxBrowserWillDismissed:self];
@@ -326,6 +364,15 @@ static NSString *currentFileName = nil;
 
 
 #pragma mark - DataController Delegate
+
+- (void)uploadToDropbox {
+	UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@""
+														message:[NSString stringWithFormat:@"Are you sure upload \"%@\" to this folder?", [self.uploadSrcFilePath lastPathComponent]]
+													   delegate:self
+											  cancelButtonTitle:@"Cancel"
+											  otherButtonTitles:kYesUploadIt, nil];
+	[alertView show];
+}
 
 - (void)removeDropboxBrowser {
     if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowserWillDismissed:)]) {
@@ -529,6 +576,36 @@ static NSString *currentFileName = nil;
     if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:failedLoadingShareLinkWithError:)]) {
         [self.rootViewDelegate dropboxBrowser:self failedLoadingShareLinkWithError:error];
     }
+}
+
+- (void)restClient:(DBRestClient*)client uploadedFile:(NSString*)destPath from:(NSString*)srcPath metadata:(DBMetadata*)metadata
+{
+    [self.downloadProgressView setHidden:YES];
+	NSString *filename = [self.uploadSrcFilePath lastPathComponent];
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Upload Successfully"
+                                                        message:[NSString stringWithFormat:@"\"%@\" was upload successfully.", filename]
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Okay"
+                                              otherButtonTitles:nil];
+    [alertView show];
+	[self listDirectoryAtPath:self.curDirPath];
+}
+
+- (void)restClient:(DBRestClient*)client uploadProgress:(CGFloat)progress forFile:(NSString*)destPath from:(NSString*)srcPath
+{
+    [self.downloadProgressView setProgress:progress];
+}
+
+- (void)restClient:(DBRestClient*)client uploadFileFailedWithError:(NSError*)error
+{
+    [self.downloadProgressView setHidden:YES];
+	NSString *filename = [self.uploadSrcFilePath lastPathComponent];
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Upload Failed"
+                                                        message:[NSString stringWithFormat:@"Failed to upload \"%@\"!", filename]
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Okay"
+                                              otherButtonTitles:nil];
+    [alertView show];
 }
 
 

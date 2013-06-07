@@ -33,6 +33,9 @@
 #import <DropboxSDK/DropboxSDK.h>
 #import "MBProgressHUD.h"
 
+#define kDBBForDownload		0
+#define kDBBForUpload 		1
+
 
 @class DBRestClient;
 @class DBMetadata;
@@ -49,6 +52,9 @@
 @property (nonatomic, strong) NSString *currentPath;
 @property (nonatomic, copy, readwrite) NSMutableArray *list;
 @property (readwrite, strong, nonatomic, setter = setAllowedFileTypes:) NSMutableArray *allowedFileTypes;
+
+
++ (id)DBBViewCtrlWithType:(int)type uploadFile:(NSString *)filepath;
 
 - (void)setList:(NSMutableArray *)newList;
 - (void)setAllowedFileTypes:(NSMutableArray *)allowedFiles;
