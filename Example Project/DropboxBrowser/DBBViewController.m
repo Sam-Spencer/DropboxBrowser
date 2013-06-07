@@ -57,14 +57,11 @@
 }
 
 - (IBAction)browseDropbox:(id)sender {
-    DropboxBrowserViewController *db = [[DropboxBrowserViewController alloc] init];
-	db.rootViewDelegate = self;
-    [db setupAllowedFileTypes:[NSMutableArray arrayWithObjects:@"pdf", nil]];
-
-	UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:db];
+	NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+	NSString *srcpath = [documentsPath stringByAppendingPathComponent:@"Getting Started.pdf"];
+//	UINavigationController *nav = [DropboxBrowserViewController DBBViewCtrlWithType:kDBBForUpload uploadFile:srcpath];
+	UINavigationController *nav = [DropboxBrowserViewController DBBViewCtrlWithType:kDBBForDownload uploadFile:srcpath];
 	[self presentModalViewController:nav animated:YES];
-
-//    [self performSegueWithIdentifier:@"showDropboxBrowser" sender:self];
 }
 
 
