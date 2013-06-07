@@ -46,6 +46,8 @@
 
 @implementation DropboxBrowserViewController
 
+#define kSignDropboxTitle		@"Sign In to Dropbox"
+
 @synthesize downloadProgressView;
 @synthesize hud, currentPath;
 @synthesize rootViewDelegate, list, allowedFileTypes;
@@ -140,7 +142,7 @@ static NSString *currentFileName = nil;
 															message:[NSString stringWithFormat:@"%@ is not linked to your Dropbox account. Would you like to sign-in now?", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"]]
                                                            delegate:self
                                                   cancelButtonTitle:@"Cancel"
-                                                  otherButtonTitles:@"Sign In to Dropbox", nil];
+                                                  otherButtonTitles:kSignDropboxTitle, nil];
         [alertView show];
     } else {
 		/*
@@ -259,11 +261,20 @@ static NSString *currentFileName = nil;
         [self listDirectoryAtPath:subpath];
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
     } else {
-        currentFileName = file.filename;
         if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:selectedFile:)]) {
             [self.rootViewDelegate dropboxBrowser:self selectedFile:file];
         } else {
-            [self downloadFile:file];
+			if (self.downloadProgressView.hidden) {
+				currentFileName = file.filename;
+				[self downloadFile:file];
+			} else {
+				UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Please wait"
+																	message:[NSString stringWithFormat:@"Can't start a new download before last downlowd finish!"]
+																   delegate:nil
+														  cancelButtonTitle:@"Okay"
+														  otherButtonTitles:nil];
+				[alertView show];
+			}
         }
     }
 }
@@ -304,7 +315,7 @@ static NSString *currentFileName = nil;
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
-    if ([buttonTitle isEqualToString:@"Sign In to Dropbox"]) {
+    if ([buttonTitle isEqualToString:kSignDropboxTitle]) {
         [[DBSession sharedSession] linkFromController:self];
     } else if ([buttonTitle isEqualToString:@"Cancel"]) {
         if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowserWillDismissed:)])
