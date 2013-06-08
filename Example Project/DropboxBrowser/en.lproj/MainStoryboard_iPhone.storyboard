@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="2.0" toolsVersion="3084" systemVersion="12D78" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="2">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="2.0" toolsVersion="3084" systemVersion="11E2617" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="2">
     <dependencies>
         <deployment version="1280" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="2083"/>
@@ -74,7 +74,7 @@
                     <connections>
                         <outlet property="clearDocsBtn" destination="sKI-3M-i8b" id="a6N-GE-lxF"/>
                         <outlet property="imgView" destination="yTi-dd-0qy" id="5XB-cn-mL1"/>
-                        <segue destination="tQm-tb-dkt" kind="modal" identifier="showDropboxBrowser" modalTransitionStyle="flipHorizontal" id="5XH-8V-bg4"/>
+                        <segue destination="tQm-tb-dkt" kind="modal" identifier="showDropboxBrowser" modalTransitionStyle="coverVertical" id="5XH-8V-bg4"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4" sceneMemberID="firstResponder"/>
@@ -150,38 +150,14 @@
                         <rect key="frame" x="0.0" y="20" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" usesAttributedText="YES" id="fqj-5r-oVG">
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" id="fqj-5r-oVG">
                                 <rect key="frame" x="0.0" y="44" width="320" height="504"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" red="0.96862745100000003" green="0.96862745100000003" blue="0.96862745100000003" alpha="1" colorSpace="calibratedRGB"/>
-                                <attributedString key="attributedText">
-                                    <fragment content="Dropbox Browser">
-                                        <attributes>
-                                            <color key="NSColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="16" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment>
-                                        <string key="content">
+                                <string key="text">Dropbox Browser
 Dropbox Browser provides a simple and effective way to browse, view, and download files using the iOS Dropbox SDK. Add the required files to your Xcode iOS project, setup Dropbox, add one simple method and a navigation controller and now you've got a simple TableView that lets users browse their files and folder, and even download them.
 
-</string>
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="Integration">
-                                        <attributes>
-                                            <color key="NSColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="16" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment>
-                                        <string key="content">
+Integration
 To properly integrate DropboxBrowser into your project follow the instructions below. Use this Sample Project as a guide for setting up your own custom project. 
  
 1. Add the following Frameworks already available in Xcode to your project:  
@@ -210,164 +186,24 @@ To properly integrate DropboxBrowser into your project follow the instructions b
 
 10. In your Implementation File (.m), add a method / action that displays the Dropbox Browser Navigation Controller. You do not need to check if the user is logged into Dropbox. Dropbox Browser handles authentication and login.  
 
-</string>
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="Delegate, Properties, and Methods">
-                                        <attributes>
-                                            <color key="NSColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="16" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment>
-                                        <string key="content">
+Delegate, Properties, and Methods
 Refer to the ReadMe file for information on delegates, properties, and methods.
     
-</string>
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="User Interface">
-                                        <attributes>
-                                            <color key="NSColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="16" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment>
-                                        <string key="content">
+User Interface
 DropboxBrowser has a nice UI that can easily be customized. All graphics have been Retina-Display, and iPhone 5 optimized.
 
 Here are a few simple ways to customize the interface:  
 
  - Swap any images (PNGs) included with Dropbox Browser with your own. Use the same size image with the exact same name.
 
- - Use </string>
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="UITableView">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Menlo-Regular"/>
-                                            <font key="NSOriginalFont" size="14" name="Menlo-Regular"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment>
-                                        <string key="content"> Prototype Cells to customize the TableView appearance. It is recommended that you set the cell type to `Subtitle`. This will allow DropboxBrowser to display file / folder names, last modified dates, and file sizes.
+ - Use UITableView Prototype Cells to customize the TableView appearance. It is recommended that you set the cell type to `Subtitle`. This will allow DropboxBrowser to display file / folder names, last modified dates, and file sizes.
 
- - Change the colors and properties in </string>
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="DropboxBrowserViewController's">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Menlo-Regular"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content=" ">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="viewDidLoad">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Menlo-Regular"/>
-                                            <font key="NSOriginalFont" size="14" name="Menlo-Regular"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content=" method you can change the tint of the ">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="UINavigationBar">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Menlo-Regular"/>
-                                            <font key="NSOriginalFont" size="14" name="Menlo-Regular"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content=", ">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="UIRefreshControl">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Menlo-Regular"/>
-                                            <font key="NSOriginalFont" size="14" name="Menlo-Regular"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content=", and the position of the ">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="UIProgressView">
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Menlo-Regular"/>
-                                            <font key="NSOriginalFont" size="14" name="Menlo-Regular"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment>
-                                        <string key="content">.  
+ - Change the colors and properties in DropboxBrowserViewController's viewDidLoad method you can change the tint of the UINavigationBar, UIRefreshControl, and the position of the UIProgressView.  
 
-</string>
-                                        <attributes>
-                                            <color key="NSColor" white="0.25476163321167883" alpha="1" colorSpace="calibratedWhite"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment content="Change Log">
-                                        <attributes>
-                                            <font key="NSFont" size="16" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                    <fragment>
-                                        <string key="content">
+Change Log
 DropboxBrowser is currently in version 4.2. Check GitHub for full details and changes on each version.</string>
-                                        <attributes>
-                                            <color key="NSColor" red="0.25490196078431371" green="0.25490196078431371" blue="0.25490196078431371" alpha="1" colorSpace="calibratedRGB"/>
-                                            <font key="NSFont" size="14" name="Futura-Medium"/>
-                                            <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
-                                        </attributes>
-                                    </fragment>
-                                </attributedString>
+                                <color key="textColor" red="0.87666666666666671" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <fontDescription key="fontDescription" name="Futura-Medium" family="Futura" pointSize="16"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                 <dataDetectorType key="dataDetectorTypes" link="YES"/>
                             </textView>

@@ -28,27 +28,52 @@
 //
 //
 
+
 #import "DropboxBrowserViewController.h"
 
+
 @interface DropboxBrowserViewController () <DBRestClientDelegate> {
-    //Back Button
+	UITableViewRowAnimation rowAnimation;
     UIBarButtonItem *leftButton;
 }
+
+@property (nonatomic, strong) NSString *curDirPath;
+@property (nonatomic, strong) NSString *uploadSrcFilePath;
+@property (nonatomic, assign) int       reqType;
 
 - (DBRestClient *)restClient;
 
 @end
 
+
+
+
 @implementation DropboxBrowserViewController
+
+#define kSignDropboxTitle		@"Sign In to Dropbox"
+#define kYesUploadIt			@"Yes, Upload it!"
+
 @synthesize downloadProgressView;
 @synthesize hud, currentPath;
 @synthesize rootViewDelegate, list, allowedFileTypes;
+
 static NSString *currentFileName = nil;
 
-//------------------------------------------------------------------------------------------------------------//
-//Region: Files and Directories ------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
+
+
 #pragma mark - Files and Directories
+
++ (id)DBBViewCtrlWithType:(int)type uploadFile:(NSString *)filepath
+{
+	DropboxBrowserViewController *db = [[DropboxBrowserViewController alloc] init];
+	UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:db];
+
+	db.reqType = type;
+	db.uploadSrcFilePath = filepath;
+	// sDefaultCtrl.rootViewDelegate = ...; // TODO
+
+	return nav;
+}
 
 + (NSString *)fileName {
     return currentFileName;
@@ -56,21 +81,19 @@ static NSString *currentFileName = nil;
 
 - (void)setAllowedFileTypes:(NSMutableArray *)allowedFiles {
     allowedFileTypes = allowedFiles;
-    NSLog(@"Allowed Files From Class: %@\nAllowed Files Set: %@", allowedFiles, allowedFileTypes);
 }
 
 - (void)setupAllowedFileTypes:(NSMutableArray *)allowedFiles {
     allowedFileTypes = allowedFiles;
-    NSLog(@"Allowed Files From Class: %@\nAllowed Files Set: %@", allowedFiles, allowedFileTypes);
 }
 
 - (void)moveToParentDirectory {
-    //Go up one directory level
     NSString *filePath = [self.currentPath stringByDeletingLastPathComponent];
     self.currentPath = filePath;
-    
+	rowAnimation = UITableViewRowAnimationBottom;
+
     if ([self.currentPath isEqualToString:@"/"]) {
-        leftButton = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonSystemItemDone target:self action:@selector(moveToParentDirectory)];
+        leftButton = nil;
         self.navigationItem.leftBarButtonItem = nil;
         self.title = @"Dropbox";
     } else {
@@ -78,123 +101,106 @@ static NSString *currentFileName = nil;
         self.navigationItem.leftBarButtonItem = leftButton;
         self.title = [currentPath lastPathComponent];
     }
-    
+
     [self listDirectoryAtPath:self.currentPath];
 }
 
-//------------------------------------------------------------------------------------------------------------//
-//Region: View Lifecycle -------------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
+
 #pragma mark  - View Lifecycle
 
 - (id)initWithStyle:(UITableViewStyle)style {
     self = [super initWithStyle:style];
     if (self) {
-        //Custom initialization
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    #warning Customize UIRefreshControl, UIProgressView, and UINavigationBar here
+
     self.title = @"Dropbox";
     self.currentPath = @"/";
-    
-    //Setup Navigation Bar color
+	self.curDirPath = @"/";
+
     self.navigationController.navigationBar.tintColor = [UIColor colorWithRed:0.0/255.0f green:122.0/255.0f blue:223.0/255.0f alpha:1.0f];
     [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"navBar"] forBarMetrics:UIBarMetricsDefault];
-    
-    //Set Bar Button
-    UIBarButtonItem *rightButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonSystemItemDone target:self action:@selector(removeDropboxBrowser)];
-    self.navigationItem.rightBarButtonItem = rightButton;
-    
-    //Setup Search Bar - Coming Soon
-    /*
-    UISearchBar *searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
-    searchBar.delegate = self;
-    self.tableView.tableHeaderView = searchBar;
-    UISearchDisplayController *searchController = [[UISearchDisplayController alloc] initWithSearchBar:searchBar contentsController:self];
-    searchController.searchResultsDataSource = self;
-    searchController.searchResultsDelegate = self;
-    searchController.delegate = self;
-    */
-    
+
+	if  (self.reqType == kDBBForDownload) {
+		UIBarButtonItem *done = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonSystemItemDone target:self action:@selector(removeDropboxBrowser)];
+		self.navigationItem.rightBarButtonItem = done;
+	} else if (self.reqType == kDBBForUpload) {
+		UIBarButtonItem *done = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonSystemItemDone target:self action:@selector(removeDropboxBrowser)];
+		UIBarButtonItem *add =  [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonSystemItemAdd target:self action:@selector(uploadToDropbox)];
+		self.navigationItem.rightBarButtonItems = [NSArray arrayWithObjects:done, add, nil];
+	}
+
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        //The user is on an iPad
-        //Add progressview
         UIProgressView *newProgressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
         newProgressView.frame = CGRectMake(180, 15, 200, 30);
         newProgressView.hidden = YES;
         [self.parentViewController.view addSubview:newProgressView];
         [self setDownloadProgressView:newProgressView];
     } else {
-        //The user is on an iPhone / iPod Touch
-        //Add progressview
         UIProgressView *newProgressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
-        newProgressView.frame = CGRectMake(80, 37, 150, 30);
+        newProgressView.frame = CGRectMake(80, 37, 110, 30);
         newProgressView.hidden = YES;
         [self.parentViewController.view addSubview:newProgressView];
         [self setDownloadProgressView:newProgressView];
     }
-    
+
+	/*
     if ([UIRefreshControl class]) {
         UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
         refreshControl.tintColor = [UIColor colorWithRed:0.0/255.0f green:122.0/255.0f blue:223.0/255.0f alpha:1.0f];
         [refreshControl addTarget:self action:@selector(updateContent) forControlEvents:UIControlEventValueChanged];
         self.refreshControl = refreshControl;
     }
-    
-    //Uncomment the following line to preserve selection between presentations.
-    //self.clearsSelectionOnViewWillAppear = NO;
+	 */
+
+    self.clearsSelectionOnViewWillAppear = NO;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     if (![self isDropboxLinked]) {
-        //Raise alert
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Not Signed In to Dropbox"
-                                                            message:[NSString stringWithFormat:@"%@ is not linked to your Dropbox account. Would you like to sign-in now?", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"]]
+															message:[NSString stringWithFormat:@"%@ is not linked to your Dropbox account. Would you like to sign-in now?", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"]]
                                                            delegate:self
                                                   cancelButtonTitle:@"Cancel"
-                                                  otherButtonTitles:@"Sign In to Dropbox", nil];
+                                                  otherButtonTitles:kSignDropboxTitle, nil];
         [alertView show];
     } else {
-        //Start progress indicator
+		/*
         if ([UIRefreshControl class]) {
             [self.refreshControl beginRefreshing];
             [self.tableView setContentOffset:CGPointMake(0, -self.refreshControl.frame.size.height) animated:YES];
-        } else {
+        } else */ {
             [NSObject cancelPreviousPerformRequestsWithTarget:self];
             [MBProgressHUD hideHUDForView:self.view animated:YES];
-        
             self.hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
             self.hud.labelText = @"Loading Data...";
             [self performSelector:@selector(timeout:) withObject:nil afterDelay:30.0];
         }
-        
+
         [self listHomeDirectory];
         [self refreshTableView];
     }
 }
 
-//In case of missing response - remove busy indicator after certain time interval
 - (void)timeout:(id)arg {
     self.hud.labelText = @"Timeout!";
     self.hud.detailsLabelText = @"Please try again later.";
     self.hud.customView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"37x-Checkmark.png"]];
 	self.hud.mode = MBProgressHUDModeCustomView;
     [self performSelector:@selector(dismissHUD:) withObject:nil afterDelay:3.0];
-    if ([UIRefreshControl class]) {
+	/*
+    if (![UIRefreshControl class]) {
         [self.refreshControl endRefreshing];
         [self.tableView setContentOffset:CGPointMake(0, 0) animated:YES];
     }
-    
+	 */
 }
 
-//------------------------------------------------------------------------------------------------------------//
-//Region: Table View Setup -----------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
+
 #pragma mark - Table View
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -211,116 +217,108 @@ static NSString *currentFileName = nil;
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if ([list count] == 0) {
-        //There are no files in the directory - let the user know
         UITableViewCell *cell = [[UITableViewCell alloc] init];
         cell.textLabel.text = @"Folder is Empty";
         cell.textLabel.textColor = [UIColor darkGrayColor];
         return cell;
     } else {
-        //Setup the Cell and its ID
-        #warning Use the correct UITableViewCell ID in your Storyboard: DropboxBrowserCell
         static NSString *CellIdentifier = @"DropboxBrowserCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    
-        //Configure the Dropbox Data for the cell
+		if (cell == nil) {
+			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
+										  reuseIdentifier:CellIdentifier];
+		}
+
         DBMetadata *file = (DBMetadata *)[self.list objectAtIndex:indexPath.row];
-    
-        //Setup the Cell File Name
         cell.textLabel.text = file.filename;
         [cell.textLabel setNeedsDisplay];
-    
-        //Setup Icon
         cell.imageView.image = [UIImage imageNamed:file.icon];
-        
-        //Setup Last Modified Date
+
         NSLocale *locale = [NSLocale currentLocale];
         NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
         NSString *dateFormat = [NSDateFormatter dateFormatFromTemplate:@"E MMM d yyyy" options:0 locale:locale];
         [formatter setDateFormat:dateFormat];
         [formatter setLocale:locale];
-        
-        //Get File Details and Display
+
         if ([file isDirectory]) {
-            //Folder
             cell.detailTextLabel.text = @"";
             [cell.detailTextLabel setNeedsDisplay];
         } else {
-            //File
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%@, modified %@", file.humanReadableSize, [formatter stringFromDate:file.lastModifiedDate]];
             [cell.detailTextLabel setNeedsDisplay];
         }
-        
+
         return cell;
     }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath == nil)
+    if (indexPath == nil || list.count == 0)
         return;
-    
+
     DBMetadata *file = (DBMetadata*)[self.list objectAtIndex:indexPath.row];
-    
+
     if ([file isDirectory]) {
-        //Show Back Button for a new directory
+		self.curDirPath = file.path;
         leftButton = [[UIBarButtonItem alloc] initWithTitle:@"Back"
                                                       style:UIBarButtonItemStyleDone
                                                      target:self
                                                      action:@selector(moveToParentDirectory)];
         self.navigationItem.leftBarButtonItem = leftButton;
-        
-        //Push new tableviewcontroller
+
         NSString *subpath = [self.currentPath stringByAppendingPathComponent:file.filename];
         self.currentPath = subpath;
         self.title = [currentPath lastPathComponent];
-        
-        //Start progress indicator
-        if ([UIRefreshControl class]) {
+
+		/*
+        if (![UIRefreshControl class]) {
             [self.refreshControl beginRefreshing];
             [self.tableView setContentOffset:CGPointMake(0, -self.refreshControl.frame.size.height) animated:YES];
-        } else {
+        } else */ {
             [NSObject cancelPreviousPerformRequestsWithTarget:self];
             [MBProgressHUD hideHUDForView:self.view animated:YES];
-        
             self.hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
             self.hud.labelText = @"Loading Data...";
             [self performSelector:@selector(timeout:) withObject:nil afterDelay:30.0];
         }
-        
+
+		rowAnimation = UITableViewRowAnimationTop;
         [self listDirectoryAtPath:subpath];
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
-        
-        NSLog(@"Path: %@", currentPath);
-        
     } else {
-        
-        currentFileName = file.filename;
-        
-        // check if our delegate handles file selection
         if ([self.rootViewDelegate respondsToSelector:@selector(dropboxBrowser:selectedFile:)]) {
             [self.rootViewDelegate dropboxBrowser:self selectedFile:file];
-        }
-        else {
-            //Download file
-            [self downloadFile:file];
+        } else {
+			if (self.downloadProgressView.hidden) {
+				currentFileName = file.filename;
+				[self downloadFile:file];
+			} else {
+				UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Please wait"
+																	message:[NSString stringWithFormat:@"Can't start a new download before last downlowd finish!"]
+																   delegate:nil
+														  cancelButtonTitle:@"Okay"
+														  otherButtonTitles:nil];
+				[alertView show];
+			}
         }
     }
 }
 
 - (void)refreshTableView {
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:rowAnimation];
     [self.tableView reloadData];
-    
-    if ([UIRefreshControl class])
+
+	/*
+    if (![UIRefreshControl class])
         [self.refreshControl endRefreshing];
+	 */
 }
 
 - (void)updateContent {
     [self listDirectoryAtPath:currentPath];
 }
 
-//------------------------------------------------------------------------------------------------------------//
-//Region: SearchBar Delegate ---------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
+
 #pragma mark - SearchBar Delegate
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
@@ -337,40 +335,58 @@ static NSString *currentFileName = nil;
     }
 }
 
-//------------------------------------------------------------------------------------------------------------//
-//Region: AlertView Delegate ---------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
+
 #pragma mark - AlertView Delegate
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
-    if ([buttonTitle isEqualToString:@"Sign In to Dropbox"]) {
+    if ([buttonTitle isEqualToString:kSignDropboxTitle]) {
         [[DBSession sharedSession] linkFromController:self];
+    } else if ([buttonTitle isEqualToString:kYesUploadIt]) {
+
+		if (self.uploadSrcFilePath == nil) self.uploadSrcFilePath = @"";
+
+		NSString *filename = [self.uploadSrcFilePath lastPathComponent];
+		NSString *srcpath = self.uploadSrcFilePath;
+		NSString *dstpath = self.curDirPath;
+
+		[self.downloadProgressView setHidden:NO];
+		[self.downloadProgressView setProgress:0.0];
+
+		[[self restClient] uploadFile:filename toPath:dstpath withParentRev:nil fromPath:srcpath];
+
     } else if ([buttonTitle isEqualToString:@"Cancel"]) {
-        if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowserDismissed:)])
-            [[self rootViewDelegate] dropboxBrowserDismissed:self];
-        
+        if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowserWillDismissed:)])
+            [[self rootViewDelegate] dropboxBrowserWillDismissed:self];
         [self dismissViewControllerAnimated:YES completion:nil];
     }
 }
 
-//------------------------------------------------------------------------------------------------------------//
-//Region: DataController Delegate ----------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
+
 #pragma mark - DataController Delegate
 
+- (void)uploadToDropbox {
+	UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@""
+														message:[NSString stringWithFormat:@"Are you sure upload \"%@\" to this folder?", [self.uploadSrcFilePath lastPathComponent]]
+													   delegate:self
+											  cancelButtonTitle:@"Cancel"
+											  otherButtonTitles:kYesUploadIt, nil];
+	[alertView show];
+}
+
 - (void)removeDropboxBrowser {
-    if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowserDismissed:)])
-        [[self rootViewDelegate] dropboxBrowserDismissed:self];
-    
+    if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowserWillDismissed:)]) {
+        [[self rootViewDelegate] dropboxBrowserWillDismissed:self];
+	}
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)dismissHUD {
-    if ([UIRefreshControl class]) {
+	/*
+    if (![UIRefreshControl class]) {
         [self.refreshControl endRefreshing];
         [self.tableView setContentOffset:CGPointMake(0, 0) animated:YES];
-    } else {
+    } else */ {
         [MBProgressHUD hideHUDForView:self.view animated:YES];
     }
 }
@@ -379,11 +395,8 @@ static NSString *currentFileName = nil;
     [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     [MBProgressHUD hideHUDForView:self.view animated:YES];
-    
-    //Code here to populate data source
-    
+
     [self performSelectorOnMainThread:@selector(refreshTableView) withObject:nil waitUntilDone:NO];
-    
 }
 
 - (void)downloadedFile {
@@ -391,8 +404,8 @@ static NSString *currentFileName = nil;
     [self.downloadProgressView setProgress:0.0];
     self.navigationItem.title = @"Dropbox";
     [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"File Downloaded"
-                                                        message:[NSString stringWithFormat:@"%@ was downloaded to the documents folder.", currentFileName]
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Download Successfully"
+                                                        message:[NSString stringWithFormat:@"\"%@\" was downloaded to the documents folder.", currentFileName]
                                                        delegate:nil
                                               cancelButtonTitle:@"Okay"
                                               otherButtonTitles:nil];
@@ -400,7 +413,6 @@ static NSString *currentFileName = nil;
 
     if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:downloadedFile:)])
         [[self rootViewDelegate] dropboxBrowser:self downloadedFile:currentFileName];
-    
 }
 
 - (void)startDownloadFile {
@@ -412,7 +424,12 @@ static NSString *currentFileName = nil;
     [self.downloadProgressView setHidden:YES];
     self.navigationItem.title = [currentPath lastPathComponent];
     [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
-    
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Download Failed"
+                                                        message:[NSString stringWithFormat:@"Failed to download \"%@\"!", currentFileName]
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Okay"
+                                              otherButtonTitles:nil];
+    [alertView show];
     if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:failedToDownloadFile:)])
         [[self rootViewDelegate] dropboxBrowser:self failedToDownloadFile:currentFileName];
 }
@@ -435,9 +452,7 @@ static NSString *currentFileName = nil;
     }
 }
 
-//------------------------------------------------------------------------------------------------------------//
-//Region: Files and Directories ------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
+
 #pragma mark - Dropbox File and Directory Functions
 
 - (BOOL)listDirectoryAtPath:(NSString *)path {
@@ -459,7 +474,7 @@ static NSString *currentFileName = nil;
 
 - (BOOL)downloadFile:(DBMetadata *)file {
     BOOL res = NO;
-    
+
     if (!file.isDirectory) {
         NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
         NSString *localPath = [documentsPath stringByAppendingPathComponent:file.filename];
@@ -473,24 +488,19 @@ static NSString *currentFileName = nil;
             NSError *error;
             [fileUrl getResourceValue:&fileDate forKey:NSURLContentModificationDateKey error:&error];
             if (!error) {
-                NSComparisonResult result; //has three possible values: NSOrderedSame, NSOrderedDescending, NSOrderedAscending
-                result = [file.lastModifiedDate compare:fileDate]; //Compare the Dates
+                NSComparisonResult result;
+                result = [file.lastModifiedDate compare:fileDate];
                 if (result == NSOrderedAscending || result == NSOrderedSame) {
-                    //Dropbox File is older than local file
                     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"File Already Downloaded"
                                                                         message:[NSString stringWithFormat:@"%@ is already in the Documents folder.", file.filename]
                                                                        delegate:nil
                                                               cancelButtonTitle:@"Okay"
                                                               otherButtonTitles:nil];
                     [alertView show];
-                    
                     NSDictionary *conflict = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:file, @"File already exists in the Documents folder", nil] forKeys:[NSArray arrayWithObjects:@"file", @"message", nil]];
-                    
                     if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:fileConflictError:)])
                         [[self rootViewDelegate] dropboxBrowser:self fileConflictError:conflict];
-                    
                 } else if (result == NSOrderedDescending) {
-                    //Dropbox File is newer than local file
                     NSLog(@"Dropbox File is newer than local file");
                     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"File Conflict"
                                                                         message:[NSString stringWithFormat:@"%@ exists in both Dropbox and the Documents folder. The one in Dropbox is newer.", file.filename]
@@ -498,18 +508,15 @@ static NSString *currentFileName = nil;
                                                               cancelButtonTitle:@"Okay"
                                                               otherButtonTitles:nil];
                     [alertView show];
-                    
                     NSDictionary *conflict = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:file, @"File exists in Dropbox and the Documents folder. The Dropbox file is newer.", nil] forKeys:[NSArray arrayWithObjects:@"file", @"message", nil]];
-                    
                     if ([[self rootViewDelegate] respondsToSelector:@selector(dropboxBrowser:fileConflictError:)])
                         [[self rootViewDelegate] dropboxBrowser:self fileConflictError:conflict];
                 }
-                
                 [self updateTableData];
             }
         }
     }
-    
+
     return res;
 }
 
@@ -518,36 +525,28 @@ static NSString *currentFileName = nil;
 }
 
 
-//------------------------------------------------------------------------------------------------------------//
-//Region: Dropbox Delegate -----------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------------------------//
 #pragma mark - DBRestClientDelegate methods
 
 - (void)restClient:(DBRestClient *)client loadedMetadata:(DBMetadata *)metadata {
     NSMutableArray *dirList = [[NSMutableArray alloc] init];
-    
+
     if (metadata.isDirectory) {
         for (DBMetadata *file in metadata.contents) {
-            //Check if directory or document
-            NSLog(@"Allowed File Types: %@", allowedFileTypes);
-            if ([file isDirectory] || ![file.filename hasSuffix:@".exe"]) //|| [allowedFileTypes containsObject:[file.filename pathExtension]])
+			// TODO: Filter allow file type, 'allowedFileTypes'
+            if ([file isDirectory] || ![file.filename hasSuffix:@".exe"])
                 [dirList addObject:file];
         }
     }
-    
     self.list = dirList;
     [self updateTableData];
 }
 
 - (void)restClient:(DBRestClient *)client loadedSearchResults:(NSArray *)results forPath:(NSString *)path keyword:(NSString *)keyword {
     self.list = [NSMutableArray arrayWithArray:results];
-    NSLog(@"List: %@", list);
-    
     [self updateTableData];
 }
 
 - (void)restClient:(DBRestClient *)restClient searchFailedWithError:(NSError *)error {
-    NSLog(@"Search Failed");
     [self updateTableData];
 }
 
@@ -578,5 +577,36 @@ static NSString *currentFileName = nil;
         [self.rootViewDelegate dropboxBrowser:self failedLoadingShareLinkWithError:error];
     }
 }
+
+- (void)restClient:(DBRestClient*)client uploadedFile:(NSString*)destPath from:(NSString*)srcPath metadata:(DBMetadata*)metadata
+{
+    [self.downloadProgressView setHidden:YES];
+	NSString *filename = [self.uploadSrcFilePath lastPathComponent];
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Upload Successfully"
+                                                        message:[NSString stringWithFormat:@"\"%@\" was upload successfully.", filename]
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Okay"
+                                              otherButtonTitles:nil];
+    [alertView show];
+	[self listDirectoryAtPath:self.curDirPath];
+}
+
+- (void)restClient:(DBRestClient*)client uploadProgress:(CGFloat)progress forFile:(NSString*)destPath from:(NSString*)srcPath
+{
+    [self.downloadProgressView setProgress:progress];
+}
+
+- (void)restClient:(DBRestClient*)client uploadFileFailedWithError:(NSError*)error
+{
+    [self.downloadProgressView setHidden:YES];
+	NSString *filename = [self.uploadSrcFilePath lastPathComponent];
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Upload Failed"
+                                                        message:[NSString stringWithFormat:@"Failed to upload \"%@\"!", filename]
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Okay"
+                                              otherButtonTitles:nil];
+    [alertView show];
+}
+
 
 @end
