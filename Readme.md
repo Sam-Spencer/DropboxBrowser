@@ -1,11 +1,16 @@
+# Sunset & Archival
+In recent years, the gap which this library attempted to cover has been filled with more adequate first-party solutions from both Apple and Dropbox. Now, its time to say goodbye to DropboxBrowser. The project will remain available for achival purposes, but should not be used in production code running iOS 11 or higher. Instead, use Dropbox's file browser from their first-party SDK, or integrate with Apple's Files app and direct users to integrate with Dropbox through that.
+
+<hr/>
+
 # Dropbox Browser
 Dropbox Browser provides a simple and effective way to browse, view, and download files using the iOS Dropbox SDK. Add the required files to your Xcode iOS project, setup Dropbox, add one simple method and a navigation controller and now you've got a wonderful View Controller that lets users browse their Dropbox files and folders, and even download them.
 
-<img width=750 src="https://github.com/iRareMedia/DropboxBrowser/blob/master/Screenshot.png?raw=true"/>
+<img width=100% src="https://github.com/iRareMedia/DropboxBrowser/blob/master/Screenshot.png?raw=true"/>
 
 If you like the project, please <a href=https://github.com/iRareMedia/DropboxBrowser>star it</a> on GitHub!
 
-##Integration & Setup
+## Integration & Setup
 To properly integrate DropboxBrowser into your project follow the instructions below. Use the included Sample Project (inside of the "Example" folder) as a guide for setting up your project. 
  
 1. Add the following Frameworks, already available in Xcode, to your project:  
@@ -131,13 +136,13 @@ Keep in mind that all content listed below is optional. DropboxBrowser will work
 </table>
 
   
-##Files
+## Files
 Just a quick note on files and downloads. Files from DropboxBrowser are **always** downloaded to your **application's Documents Directory**. If a conflict arises between a local and remote file, you can use the `fileConflictError` delegate method.
 
 ## User Interface
 DropboxBrowser has a nice UI that can easily be customized. All graphics have been Retina-Display, and iPhone 5 optimized. A quick preview of what the UI looks like can be seen below. 
 
-<img width=750 src="https://github.com/iRareMedia/DropboxBrowser/blob/master/Interface.png?raw=true"/>
+<img width=100% src="https://github.com/iRareMedia/DropboxBrowser/blob/master/Interface.png?raw=true"/>
 
 Here are a few simple ways to customize the interface:  
  - Swap any images (PNGs) included with Dropbox Browser with your own. Use the same size image with the exact same name.  
